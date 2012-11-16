@@ -35,11 +35,28 @@ test("go executes real action", function () {
   this.scant.make("#myid").go();
   equal($("#myid", this.$stage).length, 1, "made div with id");    
 });
+test(".at() creates correct action", function () {
+  this.scant.currentActions = this.scant.actions = [{
+    func: function () {},
+    args: ["myarg"]
+  }];
+  this.scant.at(100, 200);
+  equal(this.scant.currentActions.length, 2, "has two actions");
+  equal(this.scant.currentActions[1].func, this.scant.doAt, "action is doAt");
+  equal(this.scant.currentActions[1].args[0], 100, "first arg is correct");
+  equal(this.scant.currentActions[1].args[1], 200, "second arg is correct");
+});
+test(".make().at().go() creates and positions node", function () {
+  this.scant.make("#myid").at(100, 200).go();
+  var node = this.assertHasDiv("#myid");
+  equal($(node).css("left"), "100px", "node left is correct");
+  equal($(node).css("top"), "200px", "node top is correct");
+});
 
-
-test("doMake creates ID", function () {
+test("doMake creates div with id, absolute position", function () {
   this.scant.doMake("#myid");
-  this.assertHasDiv("#myid");
+  var node = this.assertHasDiv("#myid");
+  equal($(node).css("position"), "absolute", "node is absolutely positioned");
 });
 test("doMake creates class", function () {
   this.scant.doMake(".myclass");
@@ -69,4 +86,16 @@ test("doMake creates node with ID and text", function () {
   this.scant.doMake("#myid some text");
   var node = this.assertHasDiv("#myid");
   equal($(node).text(), "some text", "div has proper text");
+});
+test("doMake sets $current", function () {
+  this.scant.doMake("#myid");
+  var node = this.assertHasDiv("#myid");
+  equal(this.scant.$current[0], node, "created node is in $current");
+});
+
+test("doAt() positions current node", function () {
+  this.scant.$current = $("<div></div>");
+  this.scant.doAt(100, 200);
+  equal(this.scant.$current.css("left"), "100px", "left is correct");
+  equal(this.scant.$current.css("top"), "200px", "top is correct");
 });

@@ -5,16 +5,8 @@
   };
   
   $.extend(Scant.prototype, {
-    make: function (descriptor) {
-      this.currentActions.push({
-        func: this.doMake, 
-        args: [descriptor]
-      });
-      return this;
-    },
-    
     doMake: function (descriptor) {
-      var newNode = $("<div/>"), match;
+      var newNode = $("<div style='position: absolute'/>"), match;
       
       while (match = descriptor.match(/^[#\.][A-Za-z0-9-_]+/)) {
         var value = match[0].slice(1);
@@ -27,6 +19,14 @@
       }
       newNode.text(descriptor.trimLeft());
       this.$root.append(newNode);
+      this.$current = newNode;
+    },
+    
+    doAt: function (left, top) {
+      this.$current.css({
+        left: left,
+        top: top
+      });
     },
     
     go: function () {
@@ -36,6 +36,17 @@
       });
       return this;
     }
+  });
+  
+  // Set up chaining functions to add to action list.
+  ["make", "at"].forEach(function (chainFunc) {
+    Scant.prototype[chainFunc] = function () {
+      this.currentActions.push({
+        func: this["do" + chainFunc.charAt(0).toUpperCase() + chainFunc.slice(1)],
+        args: arguments
+      });
+      return this;
+    };
   });
   
   $.fn.scant = function () {
