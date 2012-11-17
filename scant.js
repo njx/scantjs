@@ -1,6 +1,9 @@
 (function ($) {
-  var Scant = function ($root) {
-    this.$root = $root;
+  var Scant = function ($root, defaults) {
+    this.defaults = $.extend({
+      spacing: 20
+    }, defaults);
+    this.$root = $root.css("position", "relative");
     this.currentActions = this.actions = [];
   };
   
@@ -29,6 +32,49 @@
       });
     },
     
+    doSize: function (width, height) {
+      this.$current.css({
+        width: width,
+        height: height
+      });
+    },
+    
+    doConnect: function () {
+      // *** TODO: no-op for now
+    },
+    
+    doRightOf: function (target) {
+      var $target = $(target);
+      this.$current.css({
+        left: $target.position().left + $target.outerWidth() + this.defaults.spacing,
+        top: $target.position().top
+      });
+    },
+
+    doLeftOf: function (target) {
+      var $target = $(target);
+      this.$current.css({
+        left: $target.position().left - this.defaults.spacing - this.$current.outerWidth(),
+        top: $target.position().top
+      });
+    },
+    
+    doAbove: function (target) {
+      var $target = $(target);
+      this.$current.css({
+        left: $target.position().left,
+        top: $target.position().top - this.defaults.spacing - this.$current.outerHeight()
+      });
+    },
+    
+    doBelow: function (target) {
+      var $target = $(target);
+      this.$current.css({
+        left: $target.position().left,
+        top: $target.position().top + $target.outerHeight() + this.defaults.spacing
+      });
+    },
+    
     go: function () {
       var that = this;
       this.actions.forEach(function (action) {
@@ -39,17 +85,20 @@
   });
   
   // Set up chaining functions to add to action list.
-  ["make", "at"].forEach(function (chainFunc) {
-    Scant.prototype[chainFunc] = function () {
-      this.currentActions.push({
-        func: this["do" + chainFunc.charAt(0).toUpperCase() + chainFunc.slice(1)],
-        args: arguments
-      });
-      return this;
-    };
+  Object.keys(Scant.prototype).forEach(function (key) {
+    if (key.substr(0, 2) === "do" && key.charAt(2).toUpperCase() === key.charAt(2)) {
+      var chainFunc = key.charAt(2).toLowerCase() + key.slice(3);
+      Scant.prototype[chainFunc] = function () {
+        this.currentActions.push({
+          func: this[key],
+          args: arguments
+        });
+        return this;
+      };
+    }
   });
   
-  $.fn.scant = function () {
-    return new Scant(this);
+  $.fn.scant = function (defaults) {
+    return new Scant(this, defaults);
   };
 })(jQuery);
