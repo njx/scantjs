@@ -1,5 +1,5 @@
 body {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 15px;
 }
 
@@ -13,7 +13,7 @@ body {
 
 .commit {
   border-radius: 5px;
-  padding: 5px;
+  padding: 10px;
   text-align: center;
   color: #fff;
   background-color: #865b35;
@@ -27,7 +27,7 @@ body {
 
 .branch {
   border-radius: 5px;
-  padding: 5px;
+  padding: 10px;
   text-align: center;
   color: #fff;
   background-color: #0f7248;
@@ -38,7 +38,7 @@ body {
 
 .head {
   border-radius: 5px;
-  padding: 5px;
+  padding: 10px;
   text-align: center;
   color: #fff;
   background-color: #000;
