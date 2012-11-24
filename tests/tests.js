@@ -143,9 +143,12 @@ test("do.below() places node default distance below target", function () {
   equal(this.scant.do.$current.css("left"), "200px", "left aligned with target item");
 });
 
-asyncTest("do.next() returns promise resolved on next click", function () {
-  var finished = false;
-  this.scant.do.next().done(function () {
+asyncTest("do.next() returns result with promise to be resolved on next click", function () {
+  var finished = false,
+    result = this.scant.do.next();
+  ok(result.wait, "next() says to wait until promise resolved");
+  ok(result.promise, "next() returned a promise");
+  result.promise.done(function () {
     finished = true;
     ok(true, "click resolved promise");
     start();
@@ -165,4 +168,20 @@ asyncTest("do.next() returns promise resolved on next click", function () {
 test("go() yields at next()", function () {
   this.scant.next().make("#dont-make-me").go();
   equal($("#dont-make-me", this.$stage).length, 0, "nothing executed after next()");
+});
+test("go() pushes promise and does not yield for a function that returns wait: false", function () {
+  var deferred = $.Deferred(), promise = deferred.promise(), doneCalled = false;
+  this.scant.actions = [{
+    func: function (funcArg) {
+      promise.done = function () {
+        doneCalled = true;
+      }
+      return {wait: false, promise: promise};
+    },
+    args: []
+  }];
+  this.scant.go();
+  equal(this.scant.do.promises.length, 1, "a promise was pushed");
+  equal(this.scant.do.promises[0], deferred.promise(), "the returned promise was pushed");
+  ok(!doneCalled, "done() was not called on the returned promise");
 });

@@ -104,21 +104,28 @@
       },
       
       next: function () {
-        var result = $.Deferred();
+        var deferred = $.Deferred();
         $(document.body).click(function () {
-          result.resolve();
+          deferred.resolve();
         });
-        return result;
+        return {wait: true, promise: deferred.promise()};
       },
       
       _go: function () {
         var promise, action;
         while (this.currentAction < this.actions.length) {
           action = this.actions[this.currentAction++];
-          promise = action.func.apply(this, action.args);
-          if (promise) {
-            promise.done(this._go);
-            break;
+          result = action.func.apply(this, action.args);
+          if (result && result.promise) {
+            if (result.wait) {
+              // This function wants us to wait until its promise is resolved.
+              result.promise.done(this._go);
+              break;
+            } else {
+              // Don't wait till it's done, but remember the promise in case a later
+              // function wants to wait on it.
+              this.promises.push(result.promise);
+            }
           }
         }
       },
@@ -133,13 +140,15 @@
   
   // Set up chaining functions to add to action list.
   Object.keys(Scant.prototype.do).forEach(function (key) {
-    Scant.prototype[key] = function () {
-      this.actions.push({
-        func: this.do[key],
-        args: arguments
-      });
-      return this;
-    };
+    if (key.charAt(0) != "_") {
+      Scant.prototype[key] = function () {
+        this.actions.push({
+          func: this.do[key],
+          args: arguments
+        });
+        return this;
+      };
+    }
   });
   
   $.fn.scant = function (defaults) {
